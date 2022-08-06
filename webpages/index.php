@@ -20,7 +20,7 @@ if (ctype_digit($id)) { //Excludes empty string
 			echo "You have been successfully verified.";
 		}
 		else {
-			echo "No users found with verification ID $id; please check you have copied the link correctly.<br>If you just successfully verified and refreshed,";
+			echo "No users found with verification ID $id; please check you have copied the link correctly.<br>If you just successfully verified and refreshed, you need not worry.";
 		}
 	}
 	else {
