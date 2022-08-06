@@ -27,12 +27,14 @@ async def on_member_join(member):
     guild = member.guild
     id = member.id
     print(str(id) + "joined!")
+    await member.send("Hi! Your user id is" + str(id))
     # DM verification link
 
 @client.event
 async def on_member_leave(member):
-    pass
-    # save role data to backend
+    role_data = pickle(member.roles)
+    await member.send("Sorry to see you go! Your data: " + str(role_data))
+    # save role data to backend (SALT TO PREVENT ARBITRARY CODE EXECUTION - pickle isnt secure)
 
 # need some way to listen for ping back from website
 
