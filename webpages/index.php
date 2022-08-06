@@ -31,7 +31,7 @@ if ($db = pg_connect("dbname=dra")) {
 				$query = "UPDATE partIII.members SET verified = true, verifyd = '', manualverif = false, crsid = '$crsid' WHERE userid = '$user[0]'";
 				if (pg_query($db, $query)) {
 					echo "You have been successfully verified.";
-					shell_exec("ping localhost:8080");
+					shell_exec("ping localhost:8081");
 				}
 				else {
 					echo "Database error";
