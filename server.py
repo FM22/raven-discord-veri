@@ -3,17 +3,25 @@ import time
 import bot
 
 hostName = "localhost"
-serverPort = 8080
+serverPort = 8081
 
 class MyServer(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
-        self.wfile.write(bytes("Updating bot", "utf-8"))
+        self.wfile.write(bytes("Updating bot\n", "utf-8"))
         bot.on_ping()
+        print("Ping")
+    def do_HEAD(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+        self.wfile.write(bytes("Updating bot\n", "utf-8"))
+        bot.on_ping()
+        print("Ping")
 
-if __name__ == "__main__":        
+def run_server():
     webServer = HTTPServer((hostName, serverPort), MyServer)
     print("Server started http://%s:%s" % (hostName, serverPort))
 

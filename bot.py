@@ -51,4 +51,5 @@ async def on_ping():
     print("ping")
     # update roles using database
 
-client.run(TOKEN)
+def run_bot():
+    client.run(TOKEN)
