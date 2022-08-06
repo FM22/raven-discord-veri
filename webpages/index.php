@@ -31,7 +31,7 @@ if ($db = pg_connect("dbname=dra")) {
 				$query = "UPDATE partIII.members SET verified = true, verifyd = '', manualverif = false, crsid = '$crsid' WHERE userid = '$user[0]'";
 				if (pg_query($db, $query)) {
 					echo "You have been successfully verified.";
-					shell_exec("ping localhost:8081");
+					shell_exec("curl 131.111.179.83:8080");
 				}
 				else {
 					echo "Database error";
@@ -46,6 +46,7 @@ if ($db = pg_connect("dbname=dra")) {
 			echo "Invalid user ID format; please check you have copied the link correctly.";
 		}
 	}
+	
 }
 else {
 	echo "Failed to connect to verification database. Please try again later.";
