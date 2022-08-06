@@ -5,6 +5,10 @@ import asyncio
 import math
 import json
 import pickle
+import random
+
+server_name = {38539 : "bot test server"}
+INT64_MAX = 18446744073709551616 # 2^64
 
 # set correct working directory
 os.chdir(os.path.dirname(__file__))
@@ -27,8 +31,12 @@ async def on_ready():
 async def on_member_join(member):
     guild = member.guild
     id = member.id
-    print(str(id) + " joined!")
-    await member.send("Hi! Your user id is " + str(id))
+    salt = random.randint(0, INT64_MAX - 1)
+    salted_id = (id + salt) % INT64_MAX
+    print(str(id) + " joined! Salt: " + str(salt) + "; sent to " + str(salted_id))
+    await member.send(
+        "Welcome to " + server_name.get(guild.id, "unregistered server") + 
+        " ! Please verify yourself at https://dra.soc.srcf.net/partIIIverify/?id=" + str (salted_id))
     # DM verification link
 
 @client.event
