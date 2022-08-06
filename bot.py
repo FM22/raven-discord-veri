@@ -47,6 +47,8 @@ async def on_member_remove(member):
     print("data: " + data_json)
     # save data to backend
 
-# need some way to listen for ping back from website
+async def on_ping():
+    print("ping")
+    # update roles using database
 
 client.run(TOKEN)
