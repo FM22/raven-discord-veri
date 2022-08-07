@@ -1,6 +1,7 @@
 import bot
 import server
-import _thread
+import threading
+import asyncio
 
-_thread.start_new_thread(server.run_server())
-_thread.start_new_thread(bot.run_bot())
+threading.Thread(target = server.run_server, args = ()).start()
+bot.run_bot()

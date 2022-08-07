@@ -6,6 +6,7 @@ import math
 import json
 import pickle
 import random
+from threading import Thread
 
 server_name = {38539 : "bot test server"}
 INT64_MAX = 18446744073709551616 # 2^64
@@ -17,10 +18,15 @@ os.chdir(os.path.dirname(__file__))
 dotenv.load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 
+class MyBot(discord.Client):
+    def on_ping(self):
+        print("ping")
+        # update roles using database
+
 # allows bot to listen for necessary events
 intents = discord.Intents.default()
 intents.members = True
-client = discord.Client(intents = intents)
+client = MyBot(intents = intents)
 
 @client.event
 async def on_ready():
@@ -46,10 +52,6 @@ async def on_member_remove(member):
     print(str(member.id) + " left!")
     print("data: " + data_json)
     # save data to backend
-
-async def on_ping():
-    print("ping")
-    # update roles using database
 
 def run_bot():
     client.run(TOKEN)
