@@ -7,7 +7,7 @@
 <body>
 <h1 style="text-align: center;">Part III Discord Verification</h1>
 <?php
-if ($db = pg_connect("dbname=dra")) {
+if ($db = pg_connect("dbname=dra user=dra connect_timeout=5")) {
 	//Check if there is an account associated to the given crsID
 	$crsid =  $_SERVER['AAPRINCIPAL'];
 	$query = "SELECT userid FROM partIII.members WHERE crsid='$crsid'";
@@ -31,7 +31,7 @@ if ($db = pg_connect("dbname=dra")) {
 				$query = "UPDATE partIII.members SET verified = true, verifyd = '', manualverif = false, crsid = '$crsid' WHERE userid = '$user[0]'";
 				if (pg_query($db, $query)) {
 					echo "You have been successfully verified.";
-					shell_exec("curl 131.111.179.83:8080");
+					shell_exec("curl -G '131.111.179.83:8080' -d userid='$user[0]'");
 				}
 				else {
 					echo "Database error";
@@ -50,9 +50,8 @@ if ($db = pg_connect("dbname=dra")) {
 }
 else {
 	echo "Failed to connect to verification database. Please try again later.";
+	echo pg_last_error($db);
 }
-
 ?>
-
 </body>
 </html>
