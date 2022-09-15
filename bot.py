@@ -38,7 +38,10 @@ class MyBot(discord.Client):
     async def on_ping(self, id=None):
         print("On ping")
         id = str(id)
-        if id != None:
+        if id == None:
+            pass
+            # TODO: update ALL users
+        else:
             if id.isnumeric():
                 db_cursor.execute("SELECT verified, manualverif FROM partIII.members WHERE userid='"+id+"';")
                 data = db_cursor.fetchone() # assume no duplicate entries
