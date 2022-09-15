@@ -9,8 +9,9 @@ import pickle
 import random
 import psycopg2
 
-server_name = {792095347819806741 : "bot test server"}
-veri_role_name = {792095347819806741: "student"}
+MATHS_SERVER_ID = 992049801216655370
+server_name = {792095347819806741 : "bot test server", MATHS_SERVER_ID: "Maths Part III"}
+veri_role_name = {792095347819806741: "student", MATHS_SERVER_ID: "student"}
 INT64_MAX = 18446744073709551616 # 2^64
 
 # set correct working directory
@@ -42,7 +43,7 @@ class MyBot(discord.Client):
                 db_cursor.execute("SELECT verified, manualverif FROM partIII.members WHERE userid='"+id+"';")
                 data = db_cursor.fetchone() # assume no duplicate entries
                 if data[0] or data[1]:
-                    await self.verify(int(id), 792095347819806741)
+                    await self.verify(int(id), MATHS_SERVER_ID)
                 else:
                     print("Fake verification signal for userid: " + id)
             else:
@@ -57,7 +58,6 @@ client = MyBot(intents = intents)
 async def on_ready():
     print("Discord bot connected")
     await client.change_presence(activity = discord.Game(name="Online")) # online indicator
-    print(client.get_guild(792095347819806741).get_member(241637427444318208))
 
 @client.event
 async def on_member_join(member):
@@ -69,6 +69,7 @@ async def on_member_join(member):
         salt = random.randint(0, INT64_MAX - 1)
         salted_id = str((id + salt) % INT64_MAX)
         db_cursor.execute("INSERT INTO partIII.members (userid, verifyd) VALUES ('"+str(id)+"', '"+salted_id+"');")
+        db_conn.commit()
         print(str(id) + " joined! New user. Salt: " + str(salt) + "; sent to " + salted_id)
     else:
         if data[0] or data[1]: # already verified
