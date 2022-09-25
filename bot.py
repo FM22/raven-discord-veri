@@ -30,7 +30,9 @@ class MyBot(discord.Client):
         member = guild.get_member(userid)
         await member.add_roles(veri_role, reason = "Auto-verified")
         print("Verified userid: " + str(userid) + " for guild: " + server_name[serverid])
-    
+        # TEMPORARY:
+        await member.send("Thank you for verifying!\nHead to <#992049801388621843> to get access to channels for your courses!")
+
     async def on_ping(self, id=None):
         id = str(id)
         if id == None:
@@ -90,9 +92,7 @@ async def on_ready():
 
 @client.event
 async def on_member_join(member):
-    guild = member.guild
-    id = member.id
-    client.update(id)
+    await client.update(member)
     # TODO: restore roles from DB
 
 @client.event
@@ -111,7 +111,7 @@ async def on_message(message):
         return
     if not message.guild: # DM
         await message.channel.send("Checking your status...")
-        client.update(author.id, join=False)
+        await client.update(author, join=False)
 
 def run_bot():
     global db_conn
