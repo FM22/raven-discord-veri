@@ -10,8 +10,8 @@ import random
 import psycopg2
 
 MATHS_SERVER_ID = 992049801216655370
-server_name = {792095347819806741 : "bot test server", MATHS_SERVER_ID: "Maths Part III"}
-veri_role_name = {792095347819806741: "student", MATHS_SERVER_ID: "student"}
+server_name = {792095347819806741: "bot test server", 1018871773040758844: "Maths Part IA", MATHS_SERVER_ID: "Maths Part III"}
+veri_role_name = {792095347819806741: "student", 1018871773040758844: "verified", MATHS_SERVER_ID: "student"}
 INT64_MAX = 18446744073709551616 # 2^64
 
 # set correct working directory
@@ -24,14 +24,14 @@ DRA_PASS = os.getenv('DRA_PASS')
 
 class MyBot(discord.Client):
     async def verify(self, userid):
-        serverid = MATHS_SERVER_ID # TODO: iterate through ALL servers
-        guild = self.get_guild(serverid)
-        veri_role = discord.utils.get(guild.roles,name=veri_role_name[serverid])
-        member = guild.get_member(userid)
-        await member.add_roles(veri_role, reason = "Auto-verified")
-        print("Verified userid: " + str(userid) + " for guild: " + server_name[serverid])
-        # TEMPORARY:
-        await member.send("Thank you for verifying!\nHead to <#992049801388621843> to get access to channels for your courses!")
+        for serverid in server_name.keys:
+            guild = self.get_guild(serverid)
+            veri_role = discord.utils.get(guild.roles,name=veri_role_name[serverid])
+            member = guild.get_member(userid)
+            await member.add_roles(veri_role, reason = "Auto-verified")
+            print("Verified userid: " + str(userid) + " for guild: " + server_name[serverid])
+            # TEMPORARY:
+            await member.send("Thank you for verifying!\nHead to <#992049801388621843> to get access to channels for your courses!")
 
     async def on_ping(self, id=None):
         id = str(id)
