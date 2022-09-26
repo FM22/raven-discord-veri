@@ -27,8 +27,8 @@ class MyBot(discord.Client):
         await self.get_user(userid).send("Thank you for verifying!")
 
         for guild in self.guilds:
-            veri_role = discord.utils.get(guild.roles,name=veri_role_name[guild.id])
-            if not veri_role: veri_role = discord.utils.get(guild.roles,name="verified") # default role name is "verified"
+            rolename = veri_role_name.get(guild.id, "verified")
+            veri_role = discord.utils.get(guild.roles,name=rolename)
 
             if veri_role: # skip if role not found
                 member = guild.get_member(userid)
@@ -39,6 +39,8 @@ class MyBot(discord.Client):
                     # TEMPORARY
                     if guild.id == MATHS_SERVER_ID:
                         await member.send("Head to <#992049801388621843> to get access to channels for your courses!")
+            else:
+                print("Role " + rolename + " not found for server " + str(guild) + " id " + str(guild.id))
 
     async def on_ping(self, id=None):
         id = str(id)
