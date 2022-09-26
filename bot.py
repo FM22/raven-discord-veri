@@ -29,19 +29,15 @@ class MyBot(discord.Client):
         for guild in self.guilds:
             rolename = veri_role_name.get(guild.id, "verified")
             veri_role = discord.utils.get(guild.roles,name=rolename)
-            # print(guild)
-            # print([role.name + " " + str(role.id) for role in guild.roles])
-            # print(rolename)
-            # print(veri_role.id)
             if veri_role: # skip if role not found
                 member = guild.get_member(userid)
                 if member: # skip if not in server
                     try:
                         await member.add_roles(veri_role, reason = "Auto-verified")
+                        print("Verified userid: " + str(userid) + " for guild: " + server_name[guild.id])
                     except Exception as e:
                         print("Failed to add role " + rolename + " for guild " + str(guild))
                         print(e)
-                    print("Verified userid: " + str(userid) + " for guild: " + server_name[guild.id])
 
                     # TEMPORARY
                     if guild.id == MATHS_SERVER_ID:
