@@ -2,10 +2,7 @@ from multiprocessing import connection
 import discord
 import os
 import dotenv
-import asyncio
-import math
 import json
-import pickle
 import random
 import psycopg2
 
@@ -24,33 +21,49 @@ DRA_PASS = os.getenv('DRA_PASS')
 
 class MyBot(discord.Client):
     async def verify(self, userid):
-        await self.get_user(userid).send("Thank you for verifying!")
+        user = self.get_user(userid)
+        if user:
+            try:
+                await user.send("Thank you for verifying!")
+            except Exception as e:
+                print(e)
 
-        for guild in self.guilds:
-            rolename = veri_role_name.get(guild.id, "verified")
-            veri_role = discord.utils.get(guild.roles,name=rolename)
-            if veri_role: # skip if role not found
-                member = guild.get_member(userid)
-                if member: # skip if not in server
-                    try:
-                        await member.add_roles(veri_role, reason = "Auto-verified")
-                        print("Verified userid: " + str(userid) + " for guild: " + server_name[guild.id])
-                    except Exception as e:
-                        print("Failed to add role " + rolename + " for guild " + str(guild))
-                        print(e)
+            for guild in self.guilds:
+                rolename = veri_role_name.get(guild.id, "verified")
+                veri_role = discord.utils.get(guild.roles,name=rolename)
+                if veri_role: # skip if role not found
+                    member = guild.get_member(userid)
+                    if member: # skip if not in server
+                        try:
+                            await member.add_roles(veri_role, reason = "Auto-verified")
+                            print("Verified userid: " + str(userid) + " for guild: " + server_name[guild.id])
+                        except Exception as e:
+                            print("Failed to add role " + rolename + " for guild " + str(guild))
+                            print(e)
 
-                    # TEMPORARY
-                    if guild.id == MATHS_SERVER_ID:
-                        await member.send("Head to <#992049801388621843> to get access to channels for your courses!")
-            else:
-                print("Role " + rolename + " not found for server " + str(guild) + " id " + str(guild.id))
+                        # TEMPORARY
+                        if guild.id == MATHS_SERVER_ID:
+                            try:
+                                await member.send("Head to <#992049801388621843> to get access to channels for your courses!")
+                            except Exception as e:
+                                print(e)
+                else:
+                    print("Role " + rolename + " not found for server " + str(guild) + " id " + str(guild.id))
 
-    async def on_ping(self, id=None):
-        id = str(id)
+    async def on_ping(self, db_conn, id=None):
+        db_cursor = db_conn.cursor()
         if id == None:
-            pass
-            # TODO: update ALL users
+            # update all unverified users
+            db_cursor.execute("SELECT userid FROM partIII.members WHERE verified=True OR manualverif=True;")
+            ids = [entry[0] for entry in db_cursor.fetchall()]
+            print("Updating " + str(len(ids)) + " verified users")
+            for id in ids:
+                print(id)
+                if id.isnumeric():
+                    # update individual user
+                    await self.on_ping(db_conn, id)
         else:
+            id = str(id)
             if id.isnumeric():
                 db_cursor.execute("SELECT verified, manualverif FROM partIII.members WHERE userid='"+id+"';")
                 data = db_cursor.fetchone() # assume no duplicate entries
