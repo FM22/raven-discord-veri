@@ -30,7 +30,10 @@ client = bot.MyBot(intents = intents)
 
 @client.event
 async def on_ready():
-    print("Update bot connected for id " + str(uid))
+    if uid == None:
+        print("Update bot connected for full reload")
+    else:
+        print("Update bot connected for id " + str(uid))
     await client.on_ping(db_conn, uid)
 
 client.run(TOKEN)
