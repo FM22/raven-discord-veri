@@ -11,6 +11,7 @@ server_name = {792095347819806741: "bot test server", 1018871773040758844: "Math
 veri_role_name = {792095347819806741: "student", MATHS_SERVER_ID: "student"}
 INT64_MAX = 18446744073709551616 # 2^64
 
+
 # set correct working directory
 os.chdir(os.path.dirname(__file__))
 
@@ -18,6 +19,8 @@ os.chdir(os.path.dirname(__file__))
 dotenv.load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 DRA_PASS = os.getenv('DRA_PASS')
+
+DB_CONN = {'database':'dra', 'user':'dra', 'password':DRA_PASS, 'host':'10.100.64.89', 'port':'5432'}
 
 class MyBot(discord.Client):
     async def verify(self, userid):
@@ -50,11 +53,29 @@ class MyBot(discord.Client):
                 else:
                     print("Role " + rolename + " not found for server " + str(guild) + " id " + str(guild.id))
 
+    async def unverify(self, userid):
+        user = self.get_user(userid)
+        if user:
+            for guild in self.guilds:
+                rolename = veri_role_name.get(guild.id, "verified")
+                veri_role = discord.utils.get(guild.roles,name=rolename)
+                if veri_role: # skip if role not found
+                    member = guild.get_member(userid)
+                    if member: # skip if not in server
+                        try:
+                            await member.remove_roles(veri_role, reason = "Auto-unverified")
+                            print("Unverified userid: " + str(userid) + " for guild: " + server_name[guild.id])
+                        except Exception as e:
+                            print("Failed to remove role " + rolename + " for guild " + str(guild))
+                            print(e)
+                else:
+                    print("Role " + rolename + " not found for server " + str(guild) + " id " + str(guild.id))
+
     async def on_ping(self, db_conn, id=None):
         db_cursor = db_conn.cursor()
         if id == None:
             # update all unverified users
-            db_cursor.execute("SELECT userid FROM partIII.members WHERE verified=True OR manualverif=True;")
+            db_cursor.execute("SELECT userid FROM partIII.members;")
             ids = [entry[0] for entry in db_cursor.fetchall()]
             print("Updating " + str(len(ids)) + " verified users")
             for id in ids:
@@ -71,38 +92,47 @@ class MyBot(discord.Client):
                     await self.verify(int(id))
                 else:
                     print("Fake verification signal for userid: " + id)
+                    await self.unverify(int(id))
             else:
                 print("Invalid verification signal for userid: " + id)
     
     async def update(self, user, join=True):
-        id = user.id
-        db_cursor.execute("SELECT verified, manualverif FROM partIII.members WHERE userid='"+str(id)+"';")
-        data = db_cursor.fetchone()
-        if data == None: # new user
-            salt = random.randint(0, INT64_MAX - 1)
-            salted_id = str((id + salt) % INT64_MAX)
-            db_cursor.execute("INSERT INTO partIII.members (userid, verifyd) VALUES ('"+str(id)+"', '"+salted_id+"');")
-            db_conn.commit()
-            print(str(id) + " joined! New user. Salt: " + str(salt) + "; sent to " + salted_id)
-        else:
-            if data[0] or data[1]: # already verified
-                print(str(id) + " joined! Already verified")
-                await client.verify(id)
-                if not join:
-                    await user.send("You are already verified")
-                return # don't send veri link
-            else: # already unverified
-                db_cursor.execute("SELECT verifyd FROM partIII.members WHERE userid='"+str(id)+"';")
-                salted_id = db_cursor.fetchone()[0]
-                print(str(id) + " joined! Already unverified; sent to " + salted_id)
+        db_conn = psycopg2.connect(**DB_CONN)
+        print("Connected to database")
 
-        # DM verification link
-        if join:
-            await user.send(
-                "Welcome to this Raven-protected server! Please verify yourself at https://dra.soc.srcf.net/partIIIverify/?id=" + salted_id)
-        else:
-            await user.send(
-                "Please verify yourself at https://dra.soc.srcf.net/partIIIverify/?id=" + salted_id)
+        try:
+            db_cursor = db_conn.cursor()
+            
+            id = user.id
+            db_cursor.execute("SELECT verified, manualverif FROM partIII.members WHERE userid='"+str(id)+"';")
+            data = db_cursor.fetchone()
+            if data == None: # new user
+                salt = random.randint(0, INT64_MAX - 1)
+                salted_id = str((id + salt) % INT64_MAX)
+                db_cursor.execute("INSERT INTO partIII.members (userid, verifyd) VALUES ('"+str(id)+"', '"+salted_id+"');")
+                db_conn.commit()
+                print(str(id) + " joined! New user. Salt: " + str(salt) + "; sent to " + salted_id)
+            else:
+                if data[0] or data[1]: # already verified
+                    print(str(id) + " joined! Already verified")
+                    await client.verify(id)
+                    if not join:
+                        await user.send("You are already verified")
+                    return # don't send veri link
+                else: # already unverified
+                    db_cursor.execute("SELECT verifyd FROM partIII.members WHERE userid='"+str(id)+"';")
+                    salted_id = db_cursor.fetchone()[0]
+                    print(str(id) + " joined! Already unverified; sent to " + salted_id)
+
+            # DM verification link
+            if join:
+                await user.send(
+                    "Welcome to this Raven-protected server! Please verify yourself at https://dra.soc.srcf.net/partIIIverify/?id=" + salted_id)
+            else:
+                await user.send(
+                    "Please verify yourself at https://dra.soc.srcf.net/partIIIverify/?id=" + salted_id)
+        finally:
+            db_conn.close()
 
 # allows bot to listen for necessary events
 intents = discord.Intents.default()
@@ -139,9 +169,4 @@ async def on_message(message):
         await client.update(author, join=False)
 
 def run_bot():
-    global db_conn
-    global db_cursor
-    db_conn = psycopg2.connect(database='dra', user='dra', password=DRA_PASS, host='10.100.64.89', port='5432')
-    print("Connected to database")
-    db_cursor = db_conn.cursor()
     client.run(TOKEN)
